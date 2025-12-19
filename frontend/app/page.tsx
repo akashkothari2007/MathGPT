@@ -1,14 +1,31 @@
 'use client'
 
-import MathScene from "../components/MathScene";
-import { FunctionPlot } from "../components/FunctionPlot";
+import { useState } from 'react'
+import LandingScreen from '../components/LandingScreen'
+import TeachingView from '../components/TeachingView'
 
 export default function Home() {
+  const [mode, setMode] = useState<'landing' | 'teaching'>('landing')
+  const [prompt, setPrompt] = useState('')
+
   return (
-    <div className="h-screen w-screen">
-      <MathScene>
-        <FunctionPlot f={(x) => (x *x + 4 * x + 4)/(x * x + 4 * x - 4)} />
-      </MathScene>
+    <div className = "h-screen w-screen bg-neutral-950 text-white">
+      {mode === 'landing' && (
+        <LandingScreen onSubmit = {(text) => {
+          setPrompt(text)
+          setMode('teaching')
+        }} />
+      )}
+
+      {mode === 'teaching' && (
+        <TeachingView 
+        prompt = {prompt} 
+        onNewChat = {() => {  
+          setPrompt('')
+          setMode('landing')
+        }} />
+      )}
+
     </div>
-  );
+  )
 }
