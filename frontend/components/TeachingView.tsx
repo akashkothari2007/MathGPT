@@ -22,11 +22,37 @@ export default function TeachingView({prompt, onNewChat}: Props) {
                 toggleWhiteboard = {() => setShowWhiteboard(v => !v)}
                 toggleExplanation = {() => setShowExplanation(v => !v)}
                 />
-            <div className = "flex flex-1 overflow-hidden">
-                {showSidebar && <Sidebar />}
-                <MainView showGraph = {showGraph} showWhiteboard = {showWhiteboard} showExplanation = {showExplanation} />
-            </div>
-            <div className="h-10 text-center text-sm text-neutral-400 border-t border-neutral-800">
+            
+
+            <div className="flex flex-1 overflow-hidden">
+                {/* Sidebar container */}
+                <div
+                    className={`
+                    overflow-hidden
+                    transition-all duration-300 ease-in-out
+                    ${showSidebar ? 'w-72' : 'w-0'}
+                    `}
+                >
+                    <div
+                    className={`
+                        h-full
+                        transition-transform duration-300 ease-in-out
+                        ${showSidebar ? 'translate-x-0' : '-translate-x-full'}
+                    `}
+                    >
+                    <Sidebar />
+                    </div>
+                </div>
+
+                {/* Main content */}
+                <MainView
+                    showGraph={showGraph}
+                    showWhiteboard={showWhiteboard}
+                    showExplanation={showExplanation}
+                />
+                </div>
+            
+            <div className="h-10 text-center text-sm text-neutral-500 border-t border-neutral-800/50">
                 {/* subtitles later */}
             </div>
         </div>
