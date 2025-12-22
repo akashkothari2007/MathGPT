@@ -6,7 +6,7 @@ import {useRef, useState} from 'react'
 
 
 
-type Point2DProps = {
+export type Point2DProps = {
     x: number
     y: number
     color?: string

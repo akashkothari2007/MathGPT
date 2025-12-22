@@ -1,10 +1,11 @@
 'use client'
 
-import { Text, Billboard } from '@react-three/drei'
+import { Text, Billboard, useFont} from '@react-three/drei'
 import {useState} from 'react'
 import {useFrame} from '@react-three/fiber'
 
-type Label2DProps = {
+
+export type Label2DProps = {
     text: string
     x: number
     y: number

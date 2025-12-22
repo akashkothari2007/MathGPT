@@ -7,7 +7,6 @@ import TeachingView from '../components/TeachingView'
 export default function Home() {
   const [mode, setMode] = useState<'landing' | 'teaching'>('landing')
   const [prompt, setPrompt] = useState('')
-
   return (
     <div className = "h-screen w-screen bg-neutral-950 text-white">
       {mode === 'landing' && (

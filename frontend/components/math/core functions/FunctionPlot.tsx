@@ -7,7 +7,7 @@ import {Line} from '@react-three/drei'
 import {useMemo} from 'react'
 import {useFrame} from '@react-three/fiber'
 
-type FunctionPlotProps = {
+export type FunctionPlotProps = {
     f: (x: number) => number
     xmin?: number
     xmax?: number
@@ -19,7 +19,7 @@ type FunctionPlotProps = {
     duration?: number
 }
 
-export default function FunctionPlot({f, xmin = -5, xmax = 5, steps = 1000, color = '#white', lineWidth = 1, animate = false, duration = 1}: FunctionPlotProps) {
+export default function FunctionPlot({f, xmin = -5, xmax = 5, steps = 1000, color = '#white', lineWidth = 1, animate = true, duration = 1}: FunctionPlotProps) {
     
     const points = useMemo(() => {
         const pts: THREE.Vector3[] = []

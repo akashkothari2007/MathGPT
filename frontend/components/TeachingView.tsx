@@ -13,6 +13,8 @@ export default function TeachingView({prompt, onNewChat}: Props) {
     const [showGraph, setShowGraph] = useState(true)
     const [showWhiteboard, setShowWhiteboard] = useState(false)
     const [showExplanation, setShowExplanation] = useState(true)
+
+    const [subtitle, setSubtitle] = useState(' ')
     return (
         <div className = "h-full flex flex-col">
             <TopBar
@@ -49,11 +51,12 @@ export default function TeachingView({prompt, onNewChat}: Props) {
                     showGraph={showGraph}
                     showWhiteboard={showWhiteboard}
                     showExplanation={showExplanation}
+                    setSubtitle={setSubtitle}
                 />
                 </div>
             
             <div className="h-10 text-center text-sm text-neutral-500 border-t border-neutral-800/50">
-                {/* subtitles later */}
+                {subtitle}
             </div>
         </div>
 
