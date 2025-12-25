@@ -27,7 +27,7 @@ export default function Point2D({position, color = 'red', size = 0.04, animateTo
     useEffect(() => {
       if(animateTo) {
         setAnimateProgress(0)
-        setCurrentPosition(position)
+        
       }
     }, [animateTo, position])
 
