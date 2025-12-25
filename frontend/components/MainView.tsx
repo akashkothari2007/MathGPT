@@ -1,5 +1,6 @@
 import Panel from './Panel'
 import GraphPanel from './GraphPanel'
+import type { Action } from './math/types/actions'
 
 
 type Props = {
@@ -7,15 +8,17 @@ type Props = {
     showWhiteboard: boolean
     showExplanation: boolean
     setSubtitle: React.Dispatch<React.SetStateAction<string>>
+    actions: Action[]
 
 }
 export default function MainView({
     showGraph,
     showWhiteboard,
     showExplanation,
-    setSubtitle}: Props) {
+    setSubtitle,
+    actions}: Props) {
     const panels = [
-        showGraph && <GraphPanel key = "graph" setSubtitle={setSubtitle} />,
+        showGraph && <GraphPanel key = "graph" setSubtitle={setSubtitle} actions={actions} />,
         showWhiteboard && <Panel key = "whiteboard" title = "Whiteboard" />,
         showExplanation && <Panel key = "explanation" title = "Explanation" />,
     ].filter(Boolean)

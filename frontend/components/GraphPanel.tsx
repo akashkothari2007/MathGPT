@@ -12,14 +12,18 @@ import Point2D from './math/core functions/Point2D'
 import Label2D from './math/core functions/Label2D'
 
 import { SceneObject } from './math/types/scene'
-import {demoTimeline} from './math/timeline/demoTimeline'
 import { useTimelineController } from './math/timeline/TimelineController'
+import { Action } from './math/types/actions';
+
+type Props = {
+    setSubtitle: React.Dispatch<React.SetStateAction<string>>
+    actions: Action[]
+}
 
 
-
-export default function GraphPanel({setSubtitle}: {setSubtitle: React.Dispatch<React.SetStateAction<string>>}) {
+export default function GraphPanel({setSubtitle, actions}: Props) {
     const [objects, setObjects] = useState<SceneObject[]>([])
-    useTimelineController({actions: demoTimeline, setObjects, setSubtitle})
+    useTimelineController({actions: actions, setObjects, setSubtitle})
     return (
         <div className = "w-full h-full">
             <MathScene >

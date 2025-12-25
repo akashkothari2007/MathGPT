@@ -3,6 +3,8 @@ import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import MainView from './MainView'
 
+import { demoTimeline } from './math/timeline/demoTimeline'
+
 type Props = {
     prompt: string
     onNewChat: () => void
@@ -14,6 +16,8 @@ export default function TeachingView({prompt, onNewChat}: Props) {
     const [showWhiteboard, setShowWhiteboard] = useState(false)
     const [showExplanation, setShowExplanation] = useState(true)
 
+    //GET ACTIONS FROM PROMPT HERE MAKE API CALL TO BACKEND
+    const actions = demoTimeline
     const [subtitle, setSubtitle] = useState(' ')
     return (
         <div className = "h-full flex flex-col">
@@ -52,6 +56,7 @@ export default function TeachingView({prompt, onNewChat}: Props) {
                     showWhiteboard={showWhiteboard}
                     showExplanation={showExplanation}
                     setSubtitle={setSubtitle}
+                    actions={actions}
                 />
                 </div>
             
