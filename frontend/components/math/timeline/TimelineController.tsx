@@ -1,17 +1,17 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Action } from '../types/actions'
+import { GraphAction } from '../types/actions'
 import { SceneObject } from '../types/scene'
 
 type UseTimelineControllerProps = {
-  actions: Action[]
+  graphActions: GraphAction[]
   setObjects: React.Dispatch<React.SetStateAction<SceneObject[]>>
   setSubtitle: React.Dispatch<React.SetStateAction<string>>
 }
 
 export function useTimelineController({
-  actions,
+  graphActions,
   setObjects,
   setSubtitle,
 }: UseTimelineControllerProps) {
@@ -20,30 +20,30 @@ export function useTimelineController({
 
 
   useEffect(() => {
-    if (step >= actions.length) return
+    if (step >= graphActions.length) return
     if (executedSteps.current.has(step)) return
 
     executedSteps.current.add(step)
-    const action = actions[step]
+    const graphAction = graphActions[step]
 
-    console.log('Executing step', step, action)
+    console.log('Executing step', step, graphAction)
     // set the subtitle
-    const subtitle = action.subtitle;
-    setSubtitle(subtitle)
+    const subtitle = graphAction.subtitle;
+    setSubtitle(subtitle) 
 
     //execute the graph action
-    switch (action.type) {
+    switch (graphAction.type) {
         case 'add':
-            setObjects(prev => [...prev, action.object])
+            setObjects(prev => [...prev, graphAction.object])
             break
         case 'remove':
-            setObjects(prev => prev.filter(obj => obj.id !== action.id))
+            setObjects(prev => prev.filter(obj => obj.id !== graphAction.id))
             break
         case 'update':
             setObjects(prev =>
                 prev.map(obj =>
-                  obj.id === action.id
-                    ? { ...obj, props: { ...obj.props, ...action.props } }
+                  obj.id === graphAction.id
+                    ? { ...obj, props: { ...obj.props, ...graphAction.props } }
                     : obj
                 )
               )
@@ -52,16 +52,17 @@ export function useTimelineController({
             break
     }
   
-  }, [step, actions, setObjects])
+  }, [step, graphActions, setObjects])
 
   useEffect(() => {
-    if (step >= actions.length) return
+    if (!graphActions || graphActions.length === 0) return
+    if (step >= graphActions.length) return
 
     const timeout = setTimeout(() => {
       console.log('Advancing to step', step + 1)
       setStep(prev => prev + 1)
-    }, actions[step].time * 1000)
+    }, graphActions[step].time * 1000)
 
     return () => clearTimeout(timeout)
-  }, [step, actions])
+  }, [step, graphActions])
 }

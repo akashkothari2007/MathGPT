@@ -15,17 +15,17 @@ import ShadeArea from './math/core functions/ShadeArea'
 
 import { SceneObject } from './math/types/scene'
 import { useTimelineController } from './math/timeline/TimelineController'
-import { Action } from './math/types/actions';
+import { GraphAction } from './math/types/actions';
 
 type Props = {
     setSubtitle: React.Dispatch<React.SetStateAction<string>>
-    actions: Action[]
+    graphActions: GraphAction[]
 }
 
 
-export default function GraphPanel({setSubtitle, actions}: Props) {
+export default function GraphPanel({setSubtitle, graphActions}: Props) {
     const [objects, setObjects] = useState<SceneObject[]>([])
-    useTimelineController({actions: actions, setObjects, setSubtitle})
+    useTimelineController({graphActions: graphActions, setObjects, setSubtitle})
     return (
         <div className = "w-full h-full">
             <MathScene >

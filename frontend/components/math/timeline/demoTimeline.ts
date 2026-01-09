@@ -1,6 +1,6 @@
-import { Action } from "../types/actions";
+import { GraphAction } from "../types/actions";
 
-export const demoTimeline: Action[] = [
+export const demoTimeline: GraphAction[] = [
   // 1️⃣ Add base function f1
   {
     type: "add",

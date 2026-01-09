@@ -3,7 +3,7 @@
 //see scene.ts for the types of objects that can be added to the scene
 import { SceneObject } from './scene'
 
-export type Action =
+export type GraphAction =
   | {
     type: 'add'
     object: SceneObject
@@ -21,7 +21,7 @@ export type Action =
     id: string
     props: any
     time: number
-    subtitle:string
+    subtitle: string
   }
   | {
     type: 'wait'
