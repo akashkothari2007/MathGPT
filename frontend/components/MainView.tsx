@@ -1,6 +1,6 @@
 import Panel from './Panel'
 import GraphPanel from './GraphPanel'
-import type { GraphAction } from './math/types/actions'
+import type { GraphAction } from './math/types/graphAction'
 
 
 type Props = {

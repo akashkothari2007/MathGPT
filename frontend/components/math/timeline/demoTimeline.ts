@@ -1,4 +1,4 @@
-import { GraphAction } from "../types/actions";
+import { GraphAction } from "../types/graphAction";
 
 export const demoTimeline: GraphAction[] = [
   // 1️⃣ Add base function f1
@@ -35,6 +35,27 @@ export const demoTimeline: GraphAction[] = [
     },
     time: 4,
     subtitle: "Graph of y = 0.3cos(x)",
+  },
+  {
+    type: "add",
+    object: {
+      id: "p1",
+      type: "point",
+      props: {
+        position: {x: Math.PI, y: 0},
+        color: "blue",
+        size: 0.1,
+      }
+    },
+    time: 0,
+    subtitle: "Add point at (π, 0)",
+  },
+  {
+    type: "camera",
+    position: [6, 0, 2],
+    lookAt: [3.14, 0, 0],
+    time: 0,
+    subtitle: "Camera zooms in on the graph",
   },
 
   // 3️⃣ Add area between functions

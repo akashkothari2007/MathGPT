@@ -6,19 +6,20 @@ import Axes from './Axes'
 import Grid from './Grid'
 import {ReactNode, Suspense} from 'react'
 import { Text } from '@react-three/drei'
-import CameraLogger from './CameraLogger'
+import { CameraMove } from './types/cameraAction'
+import CameraAnimator from './cameraFunctions/CameraAnimator'
 
 type MathSceneProps = {
     children?: ReactNode
+    cameraMove: CameraMove
 }
 
-export default function MathScene({children}: MathSceneProps) {
+export default function MathScene({children, cameraMove}: MathSceneProps) {
     return (
         <Canvas
         camera={{position: [0, 0, 10], fov:50}}
         className = "bg-neutral-950"
         >
-       {/* <CameraLogger /> */}
             <ambientLight
             intensity={0.6}
             />
@@ -28,6 +29,8 @@ export default function MathScene({children}: MathSceneProps) {
             />
             <Axes length = {15}/>
             <Grid />
+
+            <CameraAnimator move={cameraMove} />
 
 
             <Text

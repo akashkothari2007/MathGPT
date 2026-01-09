@@ -28,3 +28,11 @@ export type GraphAction =
     time: number
     subtitle: string
   }
+  | {
+    type: 'camera'
+    position: [number, number, number]
+    lookAt?: [number, number, number]
+    duration?: number
+    time: number
+    subtitle: string
+  }

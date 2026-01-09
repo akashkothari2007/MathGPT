@@ -1,19 +1,22 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { GraphAction } from '../types/actions'
+import { GraphAction } from '../types/graphAction'
 import { SceneObject } from '../types/scene'
+import { CameraMove } from '../types/cameraAction'
 
 type UseTimelineControllerProps = {
   graphActions: GraphAction[]
   setObjects: React.Dispatch<React.SetStateAction<SceneObject[]>>
   setSubtitle: React.Dispatch<React.SetStateAction<string>>
+  setCameraMove: React.Dispatch<React.SetStateAction<CameraMove | null>>
 }
 
 export function useTimelineController({
   graphActions,
   setObjects,
   setSubtitle,
+  setCameraMove,
 }: UseTimelineControllerProps) {
   const [step, setStep] = useState(0)
   const executedSteps = useRef<Set<number>>(new Set())
@@ -48,14 +51,20 @@ export function useTimelineController({
                 )
               )
             break
+        case 'camera':
+            setCameraMove({
+              position: graphAction.position,
+              lookAt: graphAction.lookAt,
+              duration: graphAction.duration ?? 1,
+            })
+            break
         case 'wait':
             break
     }
   
-  }, [step, graphActions, setObjects])
+  }, [step, graphActions, setObjects, setCameraMove, setSubtitle])
 
   useEffect(() => {
-    if (!graphActions || graphActions.length === 0) return
     if (step >= graphActions.length) return
 
     const timeout = setTimeout(() => {
