@@ -37,6 +37,8 @@ export function useTimelineController({
     //set the camera target
     if (action.target) {
       setCameraTarget(action.target)
+    } else {
+      setCameraTarget(null)
     }
 
     //execute the graph/camera action

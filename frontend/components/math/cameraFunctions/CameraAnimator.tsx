@@ -6,80 +6,73 @@ import * as THREE from 'three'
 import type { CameraTarget } from '../types/cameraTarget'
 
 export type CameraAnimatorProps = {
-    cameraTarget: CameraTarget | null
+  cameraTarget: CameraTarget | null
 }
 
-export default function CameraAnimator({cameraTarget}: CameraAnimatorProps) {
-    const {camera} = useThree()
+export default function CameraAnimator({ cameraTarget }: CameraAnimatorProps) {
+  const { camera } = useThree()
 
-    const startPos = useRef(new THREE.Vector3())
-    const targetPos = useRef(new THREE.Vector3())
-    const lookAtPoint = useRef(new THREE.Vector3())
-    const elapsedTime = useRef(0)
-    const duration = useRef(1)
-    const animating = useRef(false)
+  const startPos = useRef(new THREE.Vector3())
+  const targetPos = useRef(new THREE.Vector3())
+  const lookAtPoint = useRef(new THREE.Vector3())
+  const elapsedTime = useRef(0)
+  const duration = useRef(1)
+  const animating = useRef(false)
 
-    useEffect(() => {
-        if (!cameraTarget) {
-            // When cameraTarget becomes null, stop animating
-            animating.current = false
-            return
-        }
+  useEffect(() => {
+    if (!cameraTarget) {
+      // If you *ever* call setCameraTarget(null), this stops animating
+      animating.current = false
+      return
+    }
 
-        // Start from current camera position
-        startPos.current.copy(camera.position)
+    // Start from current camera position
+    startPos.current.copy(camera.position)
 
-        // Always look at origin during camera movement
-        lookAtPoint.current.set(0, 0, 0)
+    // For now always look at origin (totally fine for 2D-style graph)
+    lookAtPoint.current.set(0, 0, 0)
 
-        // End position
-        targetPos.current.set(
-            cameraTarget.position?.[0] ?? camera.position.x,
-            cameraTarget.position?.[1] ?? camera.position.y,
-            cameraTarget.position?.[2] ?? camera.position.z
-        )
+    // End position — if CameraTarget.position is required,
+    // you don't need the "?."
+    targetPos.current.set(
+      cameraTarget.position?.[0] ?? camera.position.x,
+      cameraTarget.position?.[1] ?? camera.position.y,
+      cameraTarget.position?.[2] ?? camera.position.z
+    )
 
-        duration.current = cameraTarget.duration ?? 1
-        elapsedTime.current = 0
-        animating.current = true
-    }, [cameraTarget, camera])
+    duration.current = cameraTarget.duration ?? 1
+    elapsedTime.current = 0
+    animating.current = true
+  }, [cameraTarget, camera])
 
-    // Animate each frame
-    useFrame((_, delta) => {
-        if (!animating.current) return
+  useFrame((_, delta) => {
+    if (!animating.current) return
 
-        // Accumulate time properly (this was the bug - was using delta/duration which is wrong)
-        elapsedTime.current += delta
-        const t = Math.min(elapsedTime.current / duration.current, 1)
+    elapsedTime.current += delta
+    const t = Math.min(elapsedTime.current / duration.current, 1)
 
-        // Use easing for smoother animation (ease-in-out)
-        const easedT = t < 0.5 
-            ? 2 * t * t 
-            : 1 - Math.pow(-2 * t + 2, 2) / 2
+    const easedT =
+      t < 0.5
+        ? 2 * t * t
+        : 1 - Math.pow(-2 * t + 2, 2) / 2
 
-        // Interpolate position
-        const newPos = new THREE.Vector3().lerpVectors(
-            startPos.current,
-            targetPos.current,
-            easedT
-        )
-        camera.position.copy(newPos)
-        
-        // Always look at the captured lookAt point during animation
-        // This prevents OrbitControls from interfering
-        camera.lookAt(lookAtPoint.current)
-        camera.updateProjectionMatrix()
+    const newPos = new THREE.Vector3().lerpVectors(
+      startPos.current,
+      targetPos.current,
+      easedT
+    )
+    camera.position.copy(newPos)
 
-        // End of animation
-        if (t >= 1) {
-            // Ensure we're exactly at target position
-            camera.position.copy(targetPos.current)
-            camera.lookAt(lookAtPoint.current)
-            camera.updateProjectionMatrix()
-            animating.current = false
-            // Stop maintaining - let OrbitControls take over
-        }
-    })
-    
-    return null
+    camera.lookAt(lookAtPoint.current)
+    camera.updateProjectionMatrix()
+
+    if (t >= 1) {
+      camera.position.copy(targetPos.current)
+      camera.lookAt(lookAtPoint.current)
+      camera.updateProjectionMatrix()
+      animating.current = false
+    }
+  })
+
+  return null
 }
