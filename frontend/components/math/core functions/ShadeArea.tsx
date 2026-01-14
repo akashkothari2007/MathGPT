@@ -23,7 +23,7 @@ export type ShadeAreaProps = {
 export default function ShadeArea({
   f, g, xmin, xmax, steps=200,
   color='#4ade80', opacity=0.5,
-  animateTo, animateDuration=1
+  animateTo, animateDuration=0.2
 }: ShadeAreaProps) {
   // Default g to x-axis (y=0) if not provided
   const gFunc = g ?? ((x: number) => 0)

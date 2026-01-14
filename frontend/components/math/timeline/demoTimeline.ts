@@ -87,7 +87,7 @@ export const demoTimeline: Action[] = [
         f: (x:number) => 2*Math.sin(x),
         g: (x:number) => 1 - 0.5*Math.cos(x),
       },
-      animateDuration: 1
+      animateDuration: 0.2
     },
     time: 4,
     subtitle: "Area updates with both functions",
