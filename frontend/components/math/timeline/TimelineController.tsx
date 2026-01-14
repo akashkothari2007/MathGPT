@@ -34,6 +34,11 @@ export function useTimelineController({
     const subtitle = action.subtitle;
     setSubtitle(subtitle)
 
+    //set the camera target
+    if (action.target) {
+      setCameraTarget(action.target)
+    }
+
     //execute the graph/camera action
     switch (action.type) {
         case 'add':
@@ -53,9 +58,7 @@ export function useTimelineController({
             break
         case 'wait':
             break
-        case 'camera':
-            setCameraTarget(action.target)
-            break
+    
     }
   
   }, [step, actions, setObjects])

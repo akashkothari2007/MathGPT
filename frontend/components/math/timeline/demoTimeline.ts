@@ -17,16 +17,12 @@ export const demoTimeline: Action[] = [
     },
     time: 2,
     subtitle: "Graph of y = sin(x)",
-  },
-  {
-    type: "camera",
     target: {
       position: [10, 0, 10],
       duration: 1,
     },
-    time: 4,
-    subtitle: "Camera looks at origin",
   },
+
   // 2️⃣ Add second function f2
   {
     type: "add",
@@ -40,6 +36,10 @@ export const demoTimeline: Action[] = [
         color: "red",
         lineWidth: 2,
       }
+    },
+    target: {
+      position: [0, 0, 10],
+      duration: 1,
     },
     time: 4,
     subtitle: "Graph of y = 0.3cos(x)",

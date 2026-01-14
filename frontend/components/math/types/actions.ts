@@ -10,12 +10,14 @@ export type Action =
     object: GraphObject
     time: number
     subtitle: string
+    target?: CameraTarget
   }
   | {
     type: 'remove'
     id: string
     time: number
     subtitle: string
+    target?: CameraTarget
   }
   | {
     type: 'update'
@@ -23,15 +25,12 @@ export type Action =
     props: any
     time: number
     subtitle:string
+    target?: CameraTarget
   }
   | {
     type: 'wait'
     time: number
     subtitle: string
+    target?: CameraTarget
   }
-  | {
-    type: 'camera'
-    target: CameraTarget
-    time: number
-    subtitle: string
-  }
+

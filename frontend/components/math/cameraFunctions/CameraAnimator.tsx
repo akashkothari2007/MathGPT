@@ -29,11 +29,8 @@ export default function CameraAnimator({cameraTarget}: CameraAnimatorProps) {
         // Start from current camera position
         startPos.current.copy(camera.position)
 
-        // Capture where camera is currently looking - maintain this during animation
-        const currentDirection = new THREE.Vector3()
-        camera.getWorldDirection(currentDirection)
-        // Calculate the lookAt point (some distance in front of camera)
-        lookAtPoint.current.copy(camera.position).add(currentDirection.multiplyScalar(10))
+        // Always look at origin during camera movement
+        lookAtPoint.current.set(0, 0, 0)
 
         // End position
         targetPos.current.set(
