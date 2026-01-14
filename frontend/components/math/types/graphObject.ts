@@ -5,7 +5,7 @@ import { ShadeAreaProps } from "../graphFunctions/ShadeArea"
 
 //types of objects for the graph for properties see core functions
 
-export type SceneObject = 
+export type GraphObject = 
 | {
     id: string
     type: 'function'

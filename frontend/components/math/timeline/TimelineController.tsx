@@ -3,17 +3,20 @@
 import { useEffect, useRef, useState } from 'react'
 import { Action } from '../types/actions'
 import { GraphObject } from '../types/graphObject'
+import { CameraTarget } from '../types/cameraTarget'
 
 type UseTimelineControllerProps = {
   actions: Action[]
   setObjects: React.Dispatch<React.SetStateAction<GraphObject[]>>
   setSubtitle: React.Dispatch<React.SetStateAction<string>>
+  setCameraTarget: React.Dispatch<React.SetStateAction<CameraTarget | null>>
 }
 
 export function useTimelineController({
   actions,
   setObjects,
   setSubtitle,
+  setCameraTarget,
 }: UseTimelineControllerProps) {
   const [step, setStep] = useState(0)
   const executedSteps = useRef<Set<number>>(new Set())
@@ -31,7 +34,7 @@ export function useTimelineController({
     const subtitle = action.subtitle;
     setSubtitle(subtitle)
 
-    //execute the graph action
+    //execute the graph/camera action
     switch (action.type) {
         case 'add':
             setObjects(prev => [...prev, action.object])
@@ -49,6 +52,9 @@ export function useTimelineController({
               )
             break
         case 'wait':
+            break
+        case 'camera':
+            setCameraTarget(action.target)
             break
     }
   

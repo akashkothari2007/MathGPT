@@ -15,10 +15,18 @@ export const demoTimeline: Action[] = [
         lineWidth: 2,
       }
     },
-    time: 4,
+    time: 2,
     subtitle: "Graph of y = sin(x)",
   },
-
+  {
+    type: "camera",
+    target: {
+      position: [10, 0, 10],
+      duration: 1,
+    },
+    time: 4,
+    subtitle: "Camera looks at origin",
+  },
   // 2️⃣ Add second function f2
   {
     type: "add",

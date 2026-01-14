@@ -16,6 +16,7 @@ import ShadeArea from '../math/graphFunctions/ShadeArea'
 import { GraphObject } from '../math/types/graphObject'
 import { useTimelineController } from '../math/timeline/TimelineController'
 import { Action } from '../math/types/actions';
+import { CameraTarget } from '../math/types/cameraTarget';
 
 type Props = {
     setSubtitle: React.Dispatch<React.SetStateAction<string>>
@@ -25,10 +26,11 @@ type Props = {
 
 export default function GraphPanel({setSubtitle, actions}: Props) {
     const [objects, setObjects] = useState<GraphObject[]>([])
-    useTimelineController({actions: actions, setObjects, setSubtitle})
+    const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null)     
+    useTimelineController({actions: actions, setObjects, setSubtitle, setCameraTarget})
     return (
         <div className = "w-full h-full">
-            <MathScene >
+            <MathScene cameraTarget={cameraTarget} >
             <>
             {objects.map(obj => {
                 switch (obj.type) {
