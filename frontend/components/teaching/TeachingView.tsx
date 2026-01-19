@@ -2,12 +2,10 @@ import { useState, useEffect } from 'react'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import MainView from './MainView'
-import { normalizeTimeline } from '../math/timeline/NormalizeTimeline'
+import { normalizeSteps } from '../math/timeline/NormalizeTimeline'
 
 //random ass tests
-import { wavesArtTimeline } from '../math/timeline/randomTests/artDemoTimeline'
 import { demoTimeline } from '../math/timeline/randomTests/demoTimeline'
-import { integralDemoTimeline } from '../math/timeline/randomTests/integralDemoTimeline'
 import { rawTimeline } from '../math/timeline/randomTests/stringFunctions'
 
 //core tests
@@ -18,7 +16,7 @@ import {
     slidingTangentTimeline,
     cameraTimeline,
 } from '../math/timeline/coreFunctionTests/index'
-import { Action } from '../math/types/actions'
+import { Step } from '../math/types/steps'
 
 
 
@@ -32,34 +30,34 @@ export default function TeachingView({prompt, onNewChat}: Props) {
     const [showGraph, setShowGraph] = useState(true)
     const [showWhiteboard, setShowWhiteboard] = useState(false)
     const [showExplanation, setShowExplanation] = useState(true)
-    const [actions, setActions] = useState<Action[] | null>(null)
+    const [steps, setSteps] = useState<Step[] | null>(null)
     const [subtitle, setSubtitle] = useState(' ')
 
     useEffect(() => {
         // Handle test prompts
         if (prompt == 'normalize test') {
-            setActions(normalizeTimeline(rawTimeline))
+            setSteps(normalizeSteps(rawTimeline))
             return
         }
         if (prompt === 'area test') {
-            setActions(shadeAreaTimeline)
+            setSteps(shadeAreaTimeline)
             return
         } else if (prompt === 'point test') {
-            setActions(pointAndLabelTestTimeline)
+            setSteps(pointAndLabelTestTimeline)
             return
         } else if (prompt === 'function test') {
-            setActions(functionPlotTimeline)
+            setSteps(functionPlotTimeline)
             return
         } else if (prompt === 'tangent test') {
-            setActions(slidingTangentTimeline)
+            setSteps(slidingTangentTimeline)
             return
         } else if (prompt === 'camera test') {
-            setActions(cameraTimeline)
+            setSteps(cameraTimeline)
             return
         }
 
         // Reset actions while loading
-        setActions(null)
+        setSteps(null)
 
         // Make API call for real prompts
         const fetchTimeline = async () => {
@@ -76,29 +74,29 @@ export default function TeachingView({prompt, onNewChat}: Props) {
                 // Debug: Check if data is defined and has timeline
                 if (!data) {
                     console.error('[Frontend] Data is undefined')
-                    setActions(wavesArtTimeline) // Fallback
+                    setSteps(demoTimeline) // Fallback
                     return
                 }
                 
                 if (!data.timeline) {
                     console.error('[Frontend] data.timeline is undefined. Full data:', JSON.stringify(data, null, 2))
-                    setActions(wavesArtTimeline) // Fallback
+                    setSteps(demoTimeline) // Fallback
                     return
                 }
                 
                 // Debug: Check if timeline is an array
                 if (!Array.isArray(data.timeline)) {
                     console.error('[Frontend] data.timeline is not an array:', typeof data.timeline, data.timeline)
-                    setActions(wavesArtTimeline) // Fallback
+                    setSteps(demoTimeline) // Fallback
                     return
                 }
-                const normalizedTimeline = normalizeTimeline(data.timeline)
+                const normalizedTimeline = normalizeSteps(data.timeline)
                 console.log('[Frontend] Normalized timeline:', normalizedTimeline)
                 console.log('[Frontend] Setting actions, count:', normalizedTimeline.length)
-                setActions(normalizedTimeline)
+                setSteps(normalizedTimeline)
             } catch (err) {
                 console.error('[Frontend] Failed to fetch timeline:', err)
-                setActions(wavesArtTimeline) // Fallback
+                setSteps(demoTimeline) // Fallback
             }
         }
 
@@ -136,13 +134,13 @@ export default function TeachingView({prompt, onNewChat}: Props) {
                 </div>
 
                 {/* Main content */}
-                {actions ? (
+                {steps ? (
                     <MainView
                         showGraph={showGraph}
                         showWhiteboard={showWhiteboard}
                         showExplanation={showExplanation}
                         setSubtitle={setSubtitle}
-                        actions={actions}
+                        steps={steps}
                     />
                 ) : (
                     <div className="flex-1 flex items-center justify-center bg-neutral-950">

@@ -1,78 +1,74 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Action } from '../types/actions'
+import { Step } from '../types/steps'
 import { GraphObject } from '../types/graphObject'
 import { CameraTarget } from '../types/cameraTarget'
 
 type UseTimelineControllerProps = {
-  actions: Action[]
+  steps: Step[]
   setObjects: React.Dispatch<React.SetStateAction<GraphObject[]>>
   setSubtitle: React.Dispatch<React.SetStateAction<string>>
   setCameraTarget: React.Dispatch<React.SetStateAction<CameraTarget | null>>
 }
 
 export function useTimelineController({
-  actions,
+  steps,
   setObjects,
   setSubtitle,
   setCameraTarget,
 }: UseTimelineControllerProps) {
-  const [step, setStep] = useState(0)
-  const executedSteps = useRef<Set<number>>(new Set())
+  const [stepIndex, setStepIndex] = useState(0)
+  const executed = useRef<Set<number>>(new Set())
 
-
+  // execute the current step exactly once
   useEffect(() => {
-    if (step >= actions.length) return
-    if (executedSteps.current.has(step)) return
+    if (stepIndex >= steps.length) return
+    if (executed.current.has(stepIndex)) return
 
-    executedSteps.current.add(step)
-    const action = actions[step]
+    executed.current.add(stepIndex)
 
-    console.log('Executing step', step, action)
-    // set the subtitle
-    const subtitle = action.subtitle;
-    setSubtitle(subtitle)
+    const step = steps[stepIndex]
+    console.log('Executing step', stepIndex, step)
 
-    //set the camera target
-    if (action.target) {
-      setCameraTarget(action.target)
-    } else {
-      setCameraTarget(null)
-    }
+    // subtitle + camera are step-level now
+    setSubtitle(step.subtitle ?? '')
 
-    //execute the graph/camera action
-    switch (action.type) {
+    if (step.cameraTarget) setCameraTarget(step.cameraTarget)
+    else setCameraTarget(null)
+
+    // apply every action in this step immediately (same "tick")
+    for (const action of step.actions ?? []) {
+      switch (action.type) {
         case 'add':
-            setObjects(prev => [...prev, action.object])
-            break
-        case 'remove':
-            setObjects(prev => prev.filter(obj => obj.id !== action.id))
-            break
-        case 'update':
-            setObjects(prev =>
-                prev.map(obj =>
-                  obj.id === action.id
-                    ? { ...obj, props: { ...obj.props, ...action.props } }
-                    : obj
-                )
-              )
-            break
-        case 'wait':
-            break
-    
-    }
-  
-  }, [step, actions, setObjects])
+          setObjects(prev => [...prev, action.object])
+          break
 
+        case 'remove':
+          setObjects(prev => prev.filter(obj => obj.id !== action.id))
+          break
+
+        case 'update':
+          setObjects(prev =>
+            prev.map(obj =>
+              obj.id === action.id
+                ? { ...obj, props: { ...obj.props, ...action.props } }
+                : obj
+            )
+          )
+          break
+      }
+    }
+  }, [stepIndex, steps, setObjects, setSubtitle, setCameraTarget])
+
+  // auto advance every 5s (temporary)
   useEffect(() => {
-    if (step >= actions.length) return
+    if (stepIndex >= steps.length) return
 
     const timeout = setTimeout(() => {
-      console.log('Advancing to step', step + 1)
-      setStep(prev => prev + 1)
-    }, actions[step].time * 1000)
+      setStepIndex(i => i + 1)
+    }, 5000)
 
     return () => clearTimeout(timeout)
-  }, [step, actions])
+  }, [stepIndex, steps.length])
 }

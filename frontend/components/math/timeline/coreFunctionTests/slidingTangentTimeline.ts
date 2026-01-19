@@ -1,95 +1,111 @@
-import { Action } from "../../types/actions";
+import { Step } from "../../types/steps";
 
-export const slidingTangentTimeline: Action[] = [
-    // 1) Base function y = cos(x)
-    {
-      type: "add",
-      object: {
-        id: "f_tan",
-        type: "function",
-        props: {
-          f: (x: number) => Math.cos(x),
-          xmin: -Math.PI,
-          xmax: Math.PI,
-          color: "cyan",
-          lineWidth: 2,
+export const slidingTangentTimeline: Step[] = [
+  {
+    subtitle: "Base function y = cos(x).",
+    actions: [
+      {
+        type: "add",
+        object: {
+          id: "f_tan",
+          type: "function",
+          props: {
+            f: (x: number) => Math.cos(x),
+            xmin: -3.14159265359,
+            xmax: 3.14159265359,
+            color: "cyan",
+            lineWidth: 2,
+          },
         },
       },
-      time: 4,
-      subtitle: "Base function y = cos(x).",
-    },
-  
-    // 2) Sliding tangent from -π to π
-    {
-      type: "add",
-      object: {
+    ],
+  },
+
+  {
+    subtitle: "Sliding tangent line across y = cos(x).",
+    actions: [
+      {
+        type: "add",
+        object: {
+          id: "t_slide_test",
+          type: "slidingTangent",
+          props: {
+            f: (x: number) => Math.cos(x),
+            startX: -3.14159265359,
+            endX: 3.14159265359,
+            color: "white",
+            lineWidth: 2,
+            duration: 4,
+          },
+        },
+      },
+    ],
+  },
+
+  {
+    subtitle: "Now restrict the tangent to [-π/2, π/2].",
+    actions: [
+      {
+        type: "update",
         id: "t_slide_test",
-        type: "slidingTangent",
         props: {
-          f: (x: number) => Math.cos(x),
-          startX: -Math.PI,
-          endX: Math.PI,
-          color: "white",
-          lineWidth: 2,
-          duration: 4,
+          startX: -1.57079632679,
+          endX: 1.57079632679,
+          duration: 3,
         },
       },
-      time: 5,
-      subtitle: "Sliding tangent line across y = cos(x).",
-    },
-  
-    // 3) Update tangent to a shorter range
-    {
-      type: "update",
-      id: "t_slide_test",
-      props: {
-        startX: -Math.PI / 2,
-        endX: Math.PI / 2,
-        duration: 3,
+    ],
+  },
+
+  {
+    subtitle: "Morph y = cos(x) into y = 2cos(x).",
+    actions: [
+      {
+        type: "update",
+        id: "f_tan",
+        props: {
+          g: (x: number) => 2 * Math.cos(x),
+          animateDuration: 2,
+        },
       },
-      time: 4,
-      subtitle: "Now restrict the tangent to [-π/2, π/2].",
-    },
-  
-    // 4) Double the function amplitude
-    {
-      type: "update",
-      id: "f_tan",
-      props: {
-        g: (x: number) => 2 * Math.cos(x),
-        animateDuration: 2,
+    ],
+  },
+
+  {
+    subtitle: "Sliding tangent now follows y = 2cos(x).",
+    actions: [
+      {
+        type: "update",
+        id: "t_slide_test",
+        props: {
+          f: (x: number) => 2 * Math.cos(x),
+          startX: -1.57079632679,
+          endX: 1.57079632679,
+          duration: 3,
+        },
       },
-      time: 4,
-      subtitle: "Morph y = cos(x) into y = 2cos(x).",
-    },
-  
-    // 5) Update sliding tangent to match new function
-    {
-      type: "update",
-      id: "t_slide_test",
-      props: {
-        f: (x: number) => 2 * Math.cos(x),
-        startX: -Math.PI / 2,
-        endX: Math.PI / 2,
-        duration: 3,
+    ],
+  },
+
+  // the “reverse direction” sequence compressed into a few clear steps
+  {
+    subtitle: "Reverse the sliding direction (big sweep).",
+    actions: [
+      {
+        type: "update",
+        id: "t_slide_test",
+        props: {
+          startX: 1.57079632679,
+          endX: -3,
+          duration: 3,
+        },
       },
-      time: 3,
-      subtitle: "Sliding tangent now follows y = 2cos(x).",
-    },
-  
-    // 6) Reverse direction
-    {
-      type: "update",
-      id: "t_slide_test",
-      props: {
-        startX: Math.PI / 2,
-        endX: -3,
-        duration: 3,
-      },
-      time: 3,
-      subtitle: "Reverse the sliding direction.",
-    },
-    {
+    ],
+  },
+  {
+    subtitle: "Reverse direction again (bounce).",
+    actions: [
+      {
         type: "update",
         id: "t_slide_test",
         props: {
@@ -97,9 +113,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: 2.7,
           duration: 3,
         },
-        time: 3,
-        subtitle: "Reverse the sliding direction.",
       },
+    ],
+  },
+  {
+    subtitle: "Reverse direction (smaller bounce).",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -108,9 +127,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: -2.2,
           duration: 2.7,
         },
-        time: 2.7,
-        subtitle: "Reverse the sliding direction.",
       },
+    ],
+  },
+  {
+    subtitle: "Settle toward the center.",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -119,9 +141,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: 1.7,
           duration: 2.2,
         },
-        time: 2.2,
-        subtitle: "Reverse the sliding direction.",
       },
+    ],
+  },
+  {
+    subtitle: "Settle closer.",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -130,10 +155,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: -1,
           duration: 1.7,
         },
-        time: 1.7,
-        subtitle: "Reverse the sliding direction.",
       },
-        
+    ],
+  },
+  {
+    subtitle: "Almost done.",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -142,9 +169,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: 0.5,
           duration: 1,
         },
-        time: 1,
-        subtitle: "Reverse the sliding direction.",
       },
+    ],
+  },
+  {
+    subtitle: "Tiny oscillations.",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -153,9 +183,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: -0.15,
           duration: 0.5,
         },
-        time: 3,
-        subtitle: "Reverse the sliding direction.",
       },
+    ],
+  },
+  {
+    subtitle: "Settle near 0.",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -164,9 +197,12 @@ export const slidingTangentTimeline: Action[] = [
           endX: 0.05,
           duration: 0.15,
         },
-        time: 3,
-        subtitle: "Reverse the sliding direction.",
       },
+    ],
+  },
+  {
+    subtitle: "End at x = 0.",
+    actions: [
       {
         type: "update",
         id: "t_slide_test",
@@ -175,25 +211,15 @@ export const slidingTangentTimeline: Action[] = [
           endX: 0,
           duration: 0.05,
         },
-        time: 5,
-        subtitle: "Reverse the sliding direction.",
       },
-    
-    
-    
-    
-  
-    // 7) Clean up
-    {
-      type: "remove",
-      id: "t_slide_test",
-      time: 2,
-      subtitle: "Remove the sliding tangent.",
-    },
-    {
-      type: "remove",
-      id: "f_tan",
-      time: 1.5,
-      subtitle: "Remove the base function.",
-    },
-  ];
+    ],
+  },
+
+  {
+    subtitle: "Remove the sliding tangent and base function.",
+    actions: [
+      { type: "remove", id: "t_slide_test" },
+      { type: "remove", id: "f_tan" },
+    ],
+  },
+];

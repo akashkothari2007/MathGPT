@@ -12,6 +12,8 @@ export type CameraRigProps = {
 // helpers
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v))
 
+type DragMode = 'rotate' | 'pan' | null
+
 export default function CameraRig({ cameraTarget }: CameraRigProps) {
   const { camera, gl } = useThree()
 
@@ -30,6 +32,7 @@ export default function CameraRig({ cameraTarget }: CameraRigProps) {
 
     // input
     dragging: false,
+    dragMode: null as DragMode,
     lastX: 0,
     lastY: 0,
 
@@ -37,20 +40,53 @@ export default function CameraRig({ cameraTarget }: CameraRigProps) {
     cinematic: false,
   })
 
-  // 1) Hook user input (rotate + zoom)
+  // --- small helper: derive camera basis vectors from orbit yaw/pitch ---
+  const getBasis = () => {
+    const st = s.current
+
+    const cp = Math.cos(st.dPitch)
+    const sp = Math.sin(st.dPitch)
+    const cy = Math.cos(st.dYaw)
+    const sy = Math.sin(st.dYaw)
+
+    // Direction from camera -> target (forward)
+    // camera position offset is (sy*cp, sp, cy*cp) * radius, so forward is negative of that
+    const forward = new THREE.Vector3(-sy * cp, -sp, -cy * cp).normalize()
+
+    const worldUp = new THREE.Vector3(0, 1, 0)
+    const right = new THREE.Vector3().crossVectors(worldUp, forward).normalize()
+    const up = new THREE.Vector3().crossVectors(forward, right).normalize()
+
+    return { forward, right, up }
+  }
+
+  // 1) Hook user input (rotate + zoom + pan)
   useEffect(() => {
     const el = gl.domElement
 
+    const onContextMenu = (e: MouseEvent) => {
+      // stop the browser right-click menu so panning feels normal
+      e.preventDefault()
+    }
+
     const onPointerDown = (e: PointerEvent) => {
       if (s.current.cinematic) return
+
       s.current.dragging = true
       s.current.lastX = e.clientX
       s.current.lastY = e.clientY
+
+      // Right click OR Shift+Left = pan, otherwise rotate
+      const isRight = e.button === 2
+      const isShiftPan = e.button === 0 && e.shiftKey
+      s.current.dragMode = (isRight || isShiftPan) ? 'pan' : 'rotate'
+
       el.setPointerCapture(e.pointerId)
     }
 
     const onPointerUp = (e: PointerEvent) => {
       s.current.dragging = false
+      s.current.dragMode = null
       try {
         el.releasePointerCapture(e.pointerId)
       } catch {}
@@ -65,12 +101,32 @@ export default function CameraRig({ cameraTarget }: CameraRigProps) {
       s.current.lastX = e.clientX
       s.current.lastY = e.clientY
 
-      const rotateSpeed = 0.005
-      s.current.dYaw -= dx * rotateSpeed
-      s.current.dPitch -= dy * rotateSpeed
+      const st = s.current
 
-      // stop flipping upside down
-      s.current.dPitch = clamp(s.current.dPitch, -Math.PI / 2 + 0.05, Math.PI / 2 - 0.05)
+      if (st.dragMode === 'rotate') {
+        const rotateSpeed = 0.005
+        st.dYaw -= dx * rotateSpeed
+
+        // ✅ inverted: moving mouse up should increase pitch (look up)
+        st.dPitch += dy * rotateSpeed
+        st.dPitch = clamp(st.dPitch, -Math.PI / 2 + 0.05, Math.PI / 2 - 0.05)
+        return
+      }
+
+      if (st.dragMode === 'pan') {
+        // scale pan with distance so it feels consistent
+        const panSpeed = st.dRadius * 0.0015
+
+        const { right, up } = getBasis()
+
+        // mouse right -> move target left (so view moves right), mouse down -> move target down
+        st.dTarget.addScaledVector(right, dx * panSpeed)
+        st.dTarget.addScaledVector(up,  dy * panSpeed)
+
+        // keep current target moving smoothly too (optional but feels nicer)
+        // (we already lerp target -> dTarget in useFrame, so this is enough)
+        return
+      }
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -80,12 +136,14 @@ export default function CameraRig({ cameraTarget }: CameraRigProps) {
       s.current.dRadius = clamp(s.current.dRadius, 2, 80)
     }
 
+    el.addEventListener('contextmenu', onContextMenu)
     el.addEventListener('pointerdown', onPointerDown)
-    window.addEventListener('pointerup', onPointerUp) // safer than el-only
+    window.addEventListener('pointerup', onPointerUp)
     el.addEventListener('pointermove', onPointerMove)
     el.addEventListener('wheel', onWheel, { passive: true })
 
     return () => {
+      el.removeEventListener('contextmenu', onContextMenu)
       el.removeEventListener('pointerdown', onPointerDown)
       window.removeEventListener('pointerup', onPointerUp)
       el.removeEventListener('pointermove', onPointerMove)
@@ -104,14 +162,13 @@ export default function CameraRig({ cameraTarget }: CameraRigProps) {
 
     const [px, py, pz] = cameraTarget.position
 
-    // For now: always look at origin (later we’ll support lookAt)
+    // For now: always look at origin (later: support lookAt + fit)
     s.current.dTarget.set(0, 0, 0)
 
     const pos = new THREE.Vector3(px, py, pz)
     const offset = pos.clone().sub(s.current.dTarget)
     const r = offset.length()
 
-    // Convert to yaw/pitch
     const yaw = Math.atan2(offset.x, offset.z)
     const pitch = Math.asin(clamp(offset.y / r, -1, 1))
 
@@ -145,15 +202,12 @@ export default function CameraRig({ cameraTarget }: CameraRigProps) {
     camera.lookAt(st.target)
     camera.updateProjectionMatrix()
 
-    // OPTIONAL: auto-unlock cinematic once we're "close enough"
-    // (So user can move camera after it arrives, without needing setCameraTarget(null))
+    // auto-unlock cinematic once we're close enough to the target position
     if (st.cinematic) {
       const closePos = cameraTarget?.position
       if (closePos) {
         const dist = camera.position.distanceTo(new THREE.Vector3(closePos[0], closePos[1], closePos[2]))
-        if (dist < 0.02) {
-          st.cinematic = false
-        }
+        if (dist < 0.02) st.cinematic = false
       }
     }
   })

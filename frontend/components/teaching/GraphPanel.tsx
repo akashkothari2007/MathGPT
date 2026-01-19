@@ -15,20 +15,20 @@ import ShadeArea from '../math/graphFunctions/ShadeArea'
 
 import { GraphObject } from '../math/types/graphObject'
 import { useTimelineController } from '../math/timeline/TimelineController'
-import { Action } from '../math/types/actions';
+import { Step } from '../math/types/steps';
 import { CameraTarget } from '../math/types/cameraTarget';
 import SlidingTangent from '../math/graphFunctions/slidingTangent';
 
 type Props = {
     setSubtitle: React.Dispatch<React.SetStateAction<string>>
-    actions: Action[]
+    steps: Step[]
 }
 
 
-export default function GraphPanel({setSubtitle, actions}: Props) {
+export default function GraphPanel({setSubtitle, steps}: Props) {
     const [objects, setObjects] = useState<GraphObject[]>([])
     const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null)     
-    useTimelineController({actions: actions, setObjects, setSubtitle, setCameraTarget})
+    useTimelineController({steps: steps, setObjects, setSubtitle, setCameraTarget})
     return (
         <div className = "w-full h-full">
             <MathScene cameraTarget={cameraTarget} >

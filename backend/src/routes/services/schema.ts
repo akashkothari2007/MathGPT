@@ -3,10 +3,10 @@ import { z } from "zod";
 
 const FunctionExprSchema = z.string().refine(expr => {
   try {
-    new Function("x", `return (${expr})`);
-    return true;
+    new Function("x", `return (${expr})`)
+    return true
   } catch {
-    return false;
+    return false
   }
 }, {
   message: "Invalid function expression string"
@@ -20,39 +20,44 @@ const CameraTargetSchema = z.object({
 
 export const ActionSchema = z.object({
   type: z.enum(["add", "update", "remove", "wait"]),
-  time: z.number(),
-  subtitle: z.string().transform(s => s.trim()),
   id: z.string().optional(),
   target: CameraTargetSchema.optional(),
 
   object: z.object({
     id: z.string(),
     type: z.enum(["function", "point", "label", "area", "slidingTangent"]),
-    props: z.record(z.string(), z.any())
+    props: z.record(z.string(), z.any()),
   }).optional(),
 
   props: z.record(z.string(), z.any()).optional(),
 }).superRefine((action, ctx) => {
   const checkFns = (obj: any) => {
-    if (!obj || typeof obj !== "object") return;
+    if (!obj || typeof obj !== "object") return
 
     for (const [k, v] of Object.entries(obj)) {
       if ((k === "f" || k === "g") && typeof v === "string") {
         if (!FunctionExprSchema.safeParse(v).success) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: `Invalid function expression: ${v}`
-          });
+            message: `Invalid function expression: ${v}`,
+          })
         }
       } else if (typeof v === "object") {
-        checkFns(v);
+        checkFns(v)
       }
     }
-  };
+  }
 
-  if (action.object) checkFns(action.object.props);
-  if (action.props) checkFns(action.props);
+  if (action.object) checkFns(action.object.props)
+  if (action.props) checkFns(action.props)
 });
 
-export const TimelineSchema = z.array(ActionSchema);
-export type Action = z.infer<typeof ActionSchema>;
+export const StepSchema = z.object({
+  subtitle: z.string().optional(),
+  cameraTarget: CameraTargetSchema.nullable().optional(),
+  actions: z.array(ActionSchema).optional(),
+})
+
+export const TimelineSchema = z.array(StepSchema);
+export type Action = z.infer<typeof ActionSchema>
+export type Step = z.infer<typeof StepSchema>

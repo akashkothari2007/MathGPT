@@ -1,130 +1,55 @@
 export function buildPrompt(userQuestion: string) {
   return `
-You generate animation timelines for a math visualization engine.
+You generate animation STEPS for a math visualization engine.
 
-Return ONLY a valid JSON array. No markdown. No explanations.
+Return ONLY valid JSON. No markdown, no explanation.
+Output format: a JSON array of Step objects.
 
-All math functions MUST be JavaScript EXPRESSION STRINGS using Math.*.
-Examples:
-- "Math.sin(x)"
-- "x*x"
-- "2*Math.cos(x)+1"
-
-Do NOT output "sin(x)". Always use Math.sin(x).
-Do NOT include arrow functions.
-
-All numbers must be plain numbers only.
-Use 3.14159265359 instead of Math.PI.
+Function fields MUST be JavaScript EXPRESSION STRINGS using Math.*.
+Examples: "Math.sin(x)", "x*x", "2*Math.cos(x)+1"
+Do NOT output arrow functions. Do NOT output "sin(x)".
+All numbers must be plain numbers (no expressions). Use 3.14159265359 instead of Math.PI.
 
 Types:
 
-Action =
-- { type:"add", time:number, subtitle:string, object:GraphObject, target?:CameraTarget }
-- { type:"update", time:number, subtitle:string, id:string, props:any, target?:CameraTarget }
-- { type:"remove", time:number, subtitle:string, id:string, target?:CameraTarget }
-- { type:"wait", time:number, subtitle:string, target?:CameraTarget }
-
-CameraTarget = {
-  position?: [number, number, number]
-  duration?: number
+Step = {
+  subtitle?: string,
+  cameraTarget?: { position?: [number,number,number], duration?: number } | null,
+  actions?: Action[]
 }
+
+Action =
+  | { type:"add", object: GraphObject }
+  | { type:"update", id: string, props: any }
+  | { type:"remove", id: string }
 
 GraphObject =
 - function:
-  {
-    id:string,
-    type:"function",
-    props:{
-      f:string,
-      xmin?:number,
-      xmax?:number,
-      steps?:number,
-      color?:string,
-      lineWidth?:number,
-      g?:string,
-      animateDuration?:number
-    }
-  }
+  { id:string, type:"function", props:{ f:string, xmin?:number, xmax?:number, steps?:number, color?:string, lineWidth?:number, g?:string, animateDuration?:number } }
 
 - point:
-  {
-    id:string,
-    type:"point",
-    props:{
-      position:{x:number,y:number},
-      color?:string,
-      size?:number,
-      animateTo?:{x:number,y:number},
-      animateDuration?:number,
-      followFunction?:{
-        f:string,
-        startX:number,
-        endX:number,
-        duration?:number
-      }
-    }
-  }
+  { id:string, type:"point", props:{ position:{x:number,y:number}, color?:string, size?:number, animateTo?:{x:number,y:number}, animateDuration?:number,
+    followFunction?:{ f:string, startX:number, endX:number, duration?:number } | null } }
 
 - label:
-  {
-    id:string,
-    type:"label",
-    props:{
-      text:string,
-      position:{x:number,y:number},
-      color?:string,
-      fontSize?:number
-    }
-  }
+  { id:string, type:"label", props:{ text:string, position:{x:number,y:number}, color?:string, fontSize?:number } }
 
 - area:
-  {
-    id:string,
-    type:"area",
-    props:{
-      f:string,
-      g?:string,
-      xmin:number,
-      xmax:number,
-      steps?:number,
-      color?:string,
-      opacity?:number,
-      animateTo?:{
-        f?:string,
-        g?:string,
-        xmin?:number,
-        xmax?:number
-      },
-      animateDuration?:number
-    }
-  }
+  { id:string, type:"area", props:{ f:string, g?:string, xmin:number, xmax:number, steps?:number, color?:string, opacity?:number,
+    animateTo?:{ f?:string, g?:string, xmin?:number, xmax?:number }, animateDuration?:number } }
 
 - slidingTangent:
-  {
-    id:string,
-    type:"slidingTangent",
-    props:{
-      f:string,
-      startX:number,
-      endX:number,
-      duration?:number,
-      xmin?:number,
-      xmax?:number,
-      color?:string,
-      lineWidth?:number
-    }
-  }
+  { id:string, type:"slidingTangent", props:{ f:string, startX:number, endX:number, duration?:number, xmin?:number, xmax?:number, color?:string, lineWidth?:number } }
 
 Rules:
-- Every action must have time (seconds) and subtitle
-- Use consistent ids ("f1","p1","area1","t1","lbl1")
-- Timeline should be logical and sequential
-- For update actions, include ONLY changed props
-- Default action time: ~3 seconds if not specified
+- Prefer grouping related actions into the same Step (multiple actions allowed).
+- Use stable ids: "f1","f2","p1","area1","t1","lbl1".
+- For update actions: include ONLY the props that change.
+- Keep steps/actions minimal and clean.
 
 User request:
 "${userQuestion}"
 
-Return the JSON array now.
-`.trim()
+Return the JSON Step[] now.
+`.trim();
 }
