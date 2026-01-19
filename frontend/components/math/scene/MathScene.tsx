@@ -7,7 +7,7 @@ import Grid from './Grid'
 import {ReactNode, Suspense} from 'react'
 import { Text } from '@react-three/drei'
 import { CameraTarget } from '../types/cameraTarget'
-import CameraAnimator from '../cameraFunctions/CameraAnimator'
+import CameraRig from '../cameraFunctions/CameraRig'
 
 type MathSceneProps = {
     children?: ReactNode
@@ -22,7 +22,7 @@ export default function MathScene({children, cameraTarget}: MathSceneProps) {
         >
        {/* <CameraLogger /> */}
 
-            <CameraAnimator cameraTarget={cameraTarget} />
+            <CameraRig cameraTarget={cameraTarget} />
             
             <ambientLight
             intensity={0.6}
@@ -47,10 +47,7 @@ export default function MathScene({children, cameraTarget}: MathSceneProps) {
             {children}
             
             
-            <OrbitControls
-            enableDamping
-            dampingFactor={0.1}
-            />
+
         </Canvas>
     )
 }
