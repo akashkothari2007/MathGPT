@@ -1,5 +1,16 @@
 import { z } from "zod";
 
+const CleanedString = z.preprocess(
+  (val) => {
+    if (typeof val === "string") {
+      let cleaned = val.trim();
+      cleaned = cleaned.replace(/,+$/, "");
+      return cleaned;
+    }
+    return val;
+  },
+  z.string()
+);
 
 const FunctionExprSchema = z.string().refine(expr => {
   try {
@@ -20,11 +31,11 @@ const CameraTargetSchema = z.object({
 
 export const ActionSchema = z.object({
   type: z.enum(["add", "update", "remove", "wait"]),
-  id: z.string().optional(),
+  id: CleanedString.optional(),
   target: CameraTargetSchema.optional(),
 
   object: z.object({
-    id: z.string(),
+    id: CleanedString,
     type: z.enum(["function", "point", "label", "area", "slidingTangent"]),
     props: z.record(z.string(), z.any()),
   }).optional(),
@@ -53,7 +64,7 @@ export const ActionSchema = z.object({
 });
 
 export const StepSchema = z.object({
-  subtitle: z.string().optional(),
+  subtitle: CleanedString.optional(),
   cameraTarget: CameraTargetSchema.nullable().optional(),
   actions: z.array(ActionSchema).optional(),
 })
