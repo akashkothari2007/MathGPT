@@ -7,9 +7,12 @@ import { CameraTarget } from '../types/cameraTarget'
 
 type UseTimelineControllerProps = {
   steps: Step[]
+  stepIndex: number
   setObjects: React.Dispatch<React.SetStateAction<GraphObject[]>>
   setSubtitle: React.Dispatch<React.SetStateAction<string>>
   setCameraTarget: React.Dispatch<React.SetStateAction<CameraTarget | null>>
+  executed: React.RefObject<Set<number>>
+  
 }
 
 export function useTimelineController({
@@ -17,13 +20,15 @@ export function useTimelineController({
   setObjects,
   setSubtitle,
   setCameraTarget,
+  stepIndex,
+  executed,
 }: UseTimelineControllerProps) {
-  const [stepIndex, setStepIndex] = useState(0)
-  const executed = useRef<Set<number>>(new Set())
+  
+
 
   // execute the current step exactly once
   useEffect(() => {
-    if (stepIndex >= steps.length) return
+    if (stepIndex < 0 || stepIndex >= steps.length) return
     if (executed.current.has(stepIndex)) return
 
     executed.current.add(stepIndex)
@@ -47,7 +52,6 @@ export function useTimelineController({
         case 'remove':
           setObjects(prev => prev.filter(obj => obj.id !== action.id))
           break
-
         case 'update':
           setObjects(prev =>
             prev.map(obj =>
@@ -61,14 +65,5 @@ export function useTimelineController({
     }
   }, [stepIndex, steps, setObjects, setSubtitle, setCameraTarget])
 
-  // auto advance every 5s (temporary)
-  useEffect(() => {
-    if (stepIndex >= steps.length) return
 
-    const timeout = setTimeout(() => {
-      setStepIndex(i => i + 1)
-    }, 5000)
-
-    return () => clearTimeout(timeout)
-  }, [stepIndex, steps.length])
 }

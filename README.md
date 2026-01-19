@@ -37,12 +37,12 @@ The goal is to enhance student learning by making abstract mathematical concepts
 - **Automatic look-at behavior** - camera maintains focus on origin during movement
 - **OrbitControls integration** - students can manually explore after animations complete
 
-### Timeline-Based Animation System
-- **Complex animation sequences** with precise timing control
-- **Add, update, remove, and wait actions** for building rich narratives
-- **Subtitle system** for synchronized explanations
-- **Sequential and parallel animations** support
-- **Camera control** - optional camera movement with each action
+### Step-Based Animation System
+- **Step-by-step progression** - manual control with Next button
+- **Add, update, and remove actions** within each step
+- **Subtitle system** for synchronized explanations per step
+- **Restart functionality** - reset to beginning anytime
+- **Camera control** - optional camera movement with each step
 
 ### AI-Powered Timeline Generation
 - **Natural language input** - describe what you want to visualize in plain English
@@ -72,7 +72,7 @@ The goal is to enhance student learning by making abstract mathematical concepts
 - **Node.js + Express** - RESTful API server
 - **TypeScript** - Type-safe backend code
 - **Zod** - Runtime schema validation
-- **Google Gemini API** - LLM for timeline generation
+- **DeepSeek API** - OpenAI-compatible LLM for timeline generation
 - **dotenv** - Environment variable management
 
 ---
@@ -148,7 +148,7 @@ MathGPT/
 3. **Configure environment variables**
    Create a `.env` file in the `backend/` directory:
    ```env
-   GOOGLE_API_KEY=your_api_key_here
+   DEEPSEEK_API_KEY=your_api_key_here
    ```
 
 4. **Set up the frontend**

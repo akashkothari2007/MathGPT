@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react';
+import { useState, useEffect, Suspense, useRef } from 'react';
 
 
 
@@ -28,9 +28,38 @@ type Props = {
 export default function GraphPanel({setSubtitle, steps}: Props) {
     const [objects, setObjects] = useState<GraphObject[]>([])
     const [cameraTarget, setCameraTarget] = useState<CameraTarget | null>(null)     
-    useTimelineController({steps: steps, setObjects, setSubtitle, setCameraTarget})
+    const [stepIndex, setStepIndex] = useState(0)
+    const executed = useRef<Set<number>>(new Set())
+
+    const reset = () => {
+        executed.current.clear()
+        setObjects([])
+        setCameraTarget(null)
+        // Reset stepIndex to -1 first to prevent useEffect from running, then to 0
+        setStepIndex(-1)
+        // Use requestAnimationFrame to ensure state clears before resetting
+        requestAnimationFrame(() => {
+            setStepIndex(0)
+        })
+    }
+    useTimelineController({steps: steps, setObjects, setSubtitle, setCameraTarget, stepIndex, executed})
     return (
         <div className = "w-full h-full">
+            <div className="absolute top-16 left-4 z-50 flex gap-2">
+                <button
+                    onClick={() => {setStepIndex(stepIndex + 1)}}
+                    className="rounded-xl bg-neutral-800 px-4 py-2 text-sm font-medium text-white shadow hover:bg-neutral-700 active:scale-[0.98]"
+                >
+                    Next
+                </button>
+                <button
+                    onClick={reset}
+                    className="rounded-xl border border-neutral-700 bg-neutral-900 px-4 py-2 text-sm font-medium text-neutral-200 shadow hover:bg-neutral-800 active:scale-[0.98]"
+                >
+                    Restart
+                </button>
+
+            </div>
             <MathScene cameraTarget={cameraTarget} >
             <>
             {objects.map(obj => {
@@ -56,6 +85,7 @@ export default function GraphPanel({setSubtitle, steps}: Props) {
                 
 
             </MathScene>
+            
         </div>
     )
 }
