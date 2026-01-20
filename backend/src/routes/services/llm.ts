@@ -14,14 +14,15 @@ type DeepSeekResponse = {
 };
 
 export async function generateTimeline(question: string) {
-  console.log('[Backend] Generating timeline for question:', question);
-  console.log('[Backend] Using API key:', API_KEY ? `${API_KEY.substring(0, 10)}...` : 'MISSING');
+  console.log('[Backend] [LLM] Generating timeline for question:', question);
+  console.log('[Backend] [LLM] Using API key:', API_KEY ? `${API_KEY.substring(0, 10)}...` : 'MISSING');
   
   const prompt = buildPrompt(question);
-  console.log('[Backend] Prompt length:', prompt.length, 'characters');
+  console.log('[Backend] [LLM] Built prompt, length:', prompt.length, 'characters');
+  console.log('[Backend] [LLM] Prompt preview (first 300 chars):', prompt.substring(0, 300));
 
   const endpoint = "https://api.deepseek.com/v1/chat/completions";
-  console.log('[Backend] Calling DeepSeek API:', endpoint);
+  console.log('[Backend] [LLM] Sending request to DeepSeek API:', endpoint);
 
   const requestBody = {
     model: "deepseek-chat",
@@ -34,7 +35,7 @@ export async function generateTimeline(question: string) {
     max_tokens: 4000,
     temperature: 0.2,
   };
-  console.log('[Backend] Request body:', JSON.stringify({ ...requestBody, messages: [{ ...requestBody.messages[0], content: `[${requestBody.messages[0].content.length} chars]` }] }, null, 2));
+  console.log('[Backend] [LLM] Request body:', JSON.stringify({ ...requestBody, messages: [{ ...requestBody.messages[0], content: `[${requestBody.messages[0].content.length} chars]` }] }, null, 2));
 
   const response = await fetch(endpoint, {
     method: "POST",
@@ -45,21 +46,20 @@ export async function generateTimeline(question: string) {
     body: JSON.stringify(requestBody),
   });
 
-  console.log('[Backend] Response status:', response.status, response.statusText);
-  console.log('[Backend] Response headers:', Object.fromEntries(response.headers.entries()));
+  console.log('[Backend] [LLM] Response received - status:', response.status, response.statusText);
 
   // ✅ First, await and assign to `any`
   const rawData: any = await response.json();
-  console.log('[Backend] Raw response keys:', Object.keys(rawData));
-  console.log('[Backend] Response model:', rawData.model);
-  console.log('[Backend] Response usage:', JSON.stringify(rawData.usage, null, 2));
+  console.log('[Backend] [LLM] Response parsed, keys:', Object.keys(rawData));
+  console.log('[Backend] [LLM] Response model:', rawData.model);
+  console.log('[Backend] [LLM] Token usage:', JSON.stringify(rawData.usage, null, 2));
 
   // ✅ Then cast to our type
   const data = rawData as DeepSeekResponse;
 
   let textResponse = data.choices?.[0]?.message?.content ?? "";
-  console.log('[Backend] Extracted text response length:', textResponse.length);
-  console.log('[Backend] Text response preview (first 200 chars):', textResponse.substring(0, 200));
+  console.log('[Backend] [LLM] Extracted text response, length:', textResponse.length);
+  console.log('[Backend] [LLM] Text response preview (first 300 chars):', textResponse.substring(0, 300));
   
   if (!textResponse) {
     console.error('[Backend] No output text from LLM. Full response:', JSON.stringify(data, null, 2));
@@ -89,8 +89,9 @@ export async function generateTimeline(question: string) {
     throw new Error("Failed to parse JSON:\n" + textResponse.substring(0, 500));
   }
 
-  console.log('[Backend] Validating with Zod schema...');
+  console.log('[Backend] [LLM] Validating with Zod schema...');
   const parsed = TimelineSchema.parse(timelineData);
-  console.log('[Backend] Zod validation passed. Timeline has', parsed.length, 'actions');
+  console.log('[Backend] [LLM] Zod validation passed. Timeline has', parsed.length, 'steps');
+  console.log('[Backend] [LLM] Returning validated timeline to route handler');
   return parsed;
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Sidebar from './Sidebar'
 import TopBar from './TopBar'
 import MainView from './MainView'
@@ -32,6 +32,8 @@ export default function TeachingView({prompt, onNewChat}: Props) {
     const [showExplanation, setShowExplanation] = useState(true)
     const [steps, setSteps] = useState<Step[] | null>(null)
     const [subtitle, setSubtitle] = useState(' ')
+    const fetchingRef = useRef(false)
+    const currentPromptRef = useRef<string>('')
 
     useEffect(() => {
         // Handle test prompts
@@ -56,52 +58,84 @@ export default function TeachingView({prompt, onNewChat}: Props) {
             return
         }
 
+        // Prevent duplicate calls
+        if (fetchingRef.current && currentPromptRef.current === prompt) {
+            console.log('[Frontend] Already fetching for this prompt, skipping duplicate call')
+            return
+        }
+
         // Reset actions while loading
         setSteps(null)
+        fetchingRef.current = true
+        currentPromptRef.current = prompt
 
         // Make API call for real prompts
         const fetchTimeline = async () => {
+            console.log('[Frontend] ========== NEW REQUEST ==========')
+            console.log('[Frontend] Prompt submitted:', prompt)
+            
             try {
-                console.log('[Frontend] Fetching timeline for prompt:', prompt)
+                console.log('[Frontend] Making API call to http://localhost:3001/timeline')
                 const response = await fetch('http://localhost:3001/timeline', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ prompt }),
                 })
+                
+                console.log('[Frontend] Response status:', response.status, response.statusText)
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+                    console.error('[Frontend] Error response from backend:', errorData)
+                    throw new Error(errorData.error || `HTTP ${response.status}`)
+                }
+                
                 const data = await response.json()
-                console.log('[Frontend] Received response data:', data)
+                console.log('[Frontend] Data received from backend:', data)
                 
                 // Debug: Check if data is defined and has timeline
                 if (!data) {
-                    console.error('[Frontend] Data is undefined')
-                    setSteps(demoTimeline) // Fallback
-                    return
+                    console.error('[Frontend] ERROR: Data is undefined')
+                    throw new Error('No data received from backend')
+                }
+                
+                if (data.error) {
+                    console.error('[Frontend] ERROR: Backend returned error:', data.error)
+                    throw new Error(data.error)
                 }
                 
                 if (!data.timeline) {
-                    console.error('[Frontend] data.timeline is undefined. Full data:', JSON.stringify(data, null, 2))
-                    setSteps(demoTimeline) // Fallback
-                    return
+                    console.error('[Frontend] ERROR: data.timeline is undefined. Full data:', JSON.stringify(data, null, 2))
+                    throw new Error('Timeline missing from response')
                 }
                 
                 // Debug: Check if timeline is an array
                 if (!Array.isArray(data.timeline)) {
-                    console.error('[Frontend] data.timeline is not an array:', typeof data.timeline, data.timeline)
-                    setSteps(demoTimeline) // Fallback
-                    return
+                    console.error('[Frontend] ERROR: data.timeline is not an array:', typeof data.timeline, data.timeline)
+                    throw new Error('Timeline is not an array')
                 }
+                
+                console.log('[Frontend] Timeline received, step count:', data.timeline.length)
                 const normalizedTimeline = normalizeSteps(data.timeline)
-                console.log('[Frontend] Normalized timeline:', normalizedTimeline)
-                console.log('[Frontend] Setting actions, count:', normalizedTimeline.length)
+                console.log('[Frontend] Normalized timeline, final step count:', normalizedTimeline.length)
+                console.log('[Frontend] ========== REQUEST SUCCESS ==========')
+                
+                fetchingRef.current = false
                 setSteps(normalizedTimeline)
-            } catch (err) {
-                console.error('[Frontend] Failed to fetch timeline:', err)
-                setSteps(demoTimeline) // Fallback
+            } catch (err: any) {
+                console.error('[Frontend] ========== REQUEST FAILED ==========')
+                console.error('[Frontend] Error details:', err)
+                console.error('[Frontend] Error message:', err?.message)
+                fetchingRef.current = false
+                
+                // Show error and go back to landing
+                alert(`Failed to generate timeline: ${err?.message || 'Unknown error'}`)
+                onNewChat()
             }
         }
 
         fetchTimeline()
-    }, [prompt])
+    }, [prompt, onNewChat])
     return (
         <div className = "h-full flex flex-col">
             <TopBar

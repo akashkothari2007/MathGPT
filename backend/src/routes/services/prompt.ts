@@ -46,6 +46,12 @@ Rules:
 - Use stable ids: "f1","f2","p1","area1","t1","lbl1".
 - For update actions: include ONLY the props that change.
 - Keep steps/actions minimal and clean.
+Visual scale rules (IMPORTANT):
+- Point size is in world units. Use size in [0.03, 0.12]. Default: 0.06.
+- Label fontSize is in world units. Use fontSize in [0.15, 0.5]. Default: 0.3.
+- Label positions should be near the object they describe (within ~0.2 to 0.8 units offset).
+- LineWidth: keep in [1, 4]. Default: 2.
+- Avoid huge y positions (like y=8) unless the function range actually goes there.
 
 User request:
 "${userQuestion}"
