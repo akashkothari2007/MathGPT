@@ -33,6 +33,7 @@ export async function generateTimeline(question: string) {
         content: prompt,
       },
     ],
+    response_format: { type: "json_object" },
     max_tokens: 3000,
     temperature: 0.2,
   };
@@ -49,13 +50,13 @@ export async function generateTimeline(question: string) {
 
   console.log('[Backend] [LLM] Response received - status:', response.status, response.statusText);
 
-  // ✅ First, await and assign to `any`
+  // First, await and assign to `any`
   const rawData: any = await response.json();
   console.log('[Backend] [LLM] Response parsed, keys:', Object.keys(rawData));
   console.log('[Backend] [LLM] Response model:', rawData.model);
   console.log('[Backend] [LLM] Token usage:', JSON.stringify(rawData.usage, null, 2));
 
-  // ✅ Then cast to our type
+  // Then cast to our type
   const data = rawData as DeepSeekResponse;
 
   let textResponse = data.choices?.[0]?.message?.content ?? "";

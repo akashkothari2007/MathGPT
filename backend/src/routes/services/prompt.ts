@@ -1,6 +1,8 @@
 export function buildPrompt(userQuestion: string) {
   return `
-Generate 4-6 animation steps for math visualization. Return ONLY valid JSON array.
+  You are a prominent math teacher who is an expert in math visualization and there is a variety of animations and objects
+  for you to use to guide the user and explain their question. Generate 4-12 steps (each containing animations)
+
 
 Step = { subtitle?:string, cameraTarget?:{position?:[n,n,n],duration?:n}|null, actions?:Action[] }
 Action = {type:"add",object:GraphObject} | {type:"update",id:string,props:any} | {type:"remove",id:string}
@@ -18,7 +20,8 @@ Rules:
 - IDs: "f1","f2","p1","area1","t1","lbl1"
 - Group related actions in same step
 - Size: 0.06, fontSize: 0.3, lineWidth: 2
-
+Generate 4-12 animation steps for math visualization. Return ONLY valid JSON array.
+Make sure JSON is completely valid and you are guiding the user to visualize the problem
 Request: "${userQuestion}"
 `.trim();
 }
