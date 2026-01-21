@@ -57,8 +57,7 @@ export const functionPlotTimeline: Step[] = [
         type: "update",
         id: "f_test",
         props: {
-          g: (x: number) => Math.sin(x),
-          animateDuration: 2,
+          f: (x: number) => Math.sin(x),
         },
       },
     ],

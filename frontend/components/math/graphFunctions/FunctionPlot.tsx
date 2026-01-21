@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { Line } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
@@ -12,9 +12,19 @@ export type FunctionPlotProps = {
   steps?: number
   color?: string
   lineWidth?: number
+}
 
-  g?: (x: number) => number
-  animateDuration?: number
+const MORPH_DURATION = 0.4
+
+function samplePoints(f: (x: number) => number, xmin: number, xmax: number, steps: number) {
+  const arr: THREE.Vector3[] = []
+  for (let i = 0; i <= steps; i++) {
+    const t = i / steps
+    const x = xmin + t * (xmax - xmin)
+    const y = f(x)
+    arr.push(new THREE.Vector3(x, y, 0))
+  }
+  return arr
 }
 
 export default function FunctionPlot({
@@ -24,76 +34,52 @@ export default function FunctionPlot({
   steps = 1000,
   color = '#ffffff',
   lineWidth = 1,
-  g,
-  animateDuration = 1,
 }: FunctionPlotProps) {
-
-  // static points base
-  const basePoints = useMemo(() => {
-    const arr: THREE.Vector3[] = []
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps
-      const x = xmin + t * (xmax - xmin)
-      const y = f(x)
-      arr.push(new THREE.Vector3(x, y, 0))
-    }
-    return arr
-  }, [f, xmin, xmax, steps])
-
-  // recompute base points when bounds change
-  useEffect(() => {
-    setCurrentPoints(basePoints.map(p => p.clone()))    
-    setVisibleCount(steps)
-  }, [xmin, xmax, steps])
-
-  // current drawn (for drawing animation)
-  const [currentPoints, setCurrentPoints] = useState(
-    () => basePoints.map(p => p.clone())
+  const desiredPoints = useMemo(
+    () => samplePoints(f, xmin, xmax, steps),
+    [f, xmin, xmax, steps]
   )
 
-  // morphing
-  const [targetPoints, setTargetPoints] = useState<THREE.Vector3[] | null>(null)
-  const [progress, setProgress] = useState(0)
+  // what we render
+  const [currentPoints, setCurrentPoints] = useState<THREE.Vector3[]>(
+    () => desiredPoints.map(p => p.clone())
+  )
 
-  // Update currentPoints when f changes (if no active morph)
-  useEffect(() => {
-    if (!g && !targetPoints) {
-      // If no morphing animation, update immediately when f changes
-      setCurrentPoints(basePoints.map(p => p.clone()))
-      setTargetPoints(null)
-      setProgress(0)
-    }
-  }, [basePoints, g, targetPoints])
-
-
+  // draw-in animation
   const [visibleCount, setVisibleCount] = useState(2)
   const [drawFinished, setDrawFinished] = useState(false)
 
-  // Reset drawing when component is FIRST mounted
+  // morph state
+  const startPointsRef = useRef<THREE.Vector3[] | null>(null)
+  const targetPointsRef = useRef<THREE.Vector3[] | null>(null)
+  const progressRef = useRef(0)
+
+  const firstMountRef = useRef(true)
+
+  // On mount: reset drawing
   useEffect(() => {
     setVisibleCount(2)
     setDrawFinished(false)
-  }, []) //  run only on initial creation then it draws the base points
+  }, [])
 
-  //compute new target points when animateTo changes
+  // When desiredPoints changes:
+  // - first mount: just set them (draw anim will reveal)
+  // - later: morph from current -> desired
   useEffect(() => {
-    if (!g) return
-
-    const arr: THREE.Vector3[] = []
-    for (let i = 0; i <= steps; i++) {
-      const t = i / steps
-      const x = xmin + t * (xmax - xmin)
-      const y = g(x)
-      arr.push(new THREE.Vector3(x, y, 0))
+    if (firstMountRef.current) {
+      firstMountRef.current = false
+      setCurrentPoints(desiredPoints.map(p => p.clone()))
+      return
     }
-    setTargetPoints(arr)
-    setProgress(0)
-  }, [g, xmin, xmax, steps])
-  
 
-  // now we animate the drawing, animate the morphing
+    // start morph
+    startPointsRef.current = currentPoints.map(p => p.clone())
+    targetPointsRef.current = desiredPoints
+    progressRef.current = 0
+  }, [desiredPoints])
+
   useFrame((_, delta) => {
-    // draw animation
+    // draw animation first
     if (!drawFinished) {
       setVisibleCount(prev => {
         const speed = steps
@@ -105,27 +91,32 @@ export default function FunctionPlot({
     }
 
     // morph animation
-    if (!targetPoints) return
+    const start = startPointsRef.current
+    const target = targetPointsRef.current
+    if (!start || !target) return
 
-    setProgress(prev => {
-      const next = Math.min(prev + (1 / animateDuration) * delta, 1)
+    progressRef.current = Math.min(progressRef.current + delta / MORPH_DURATION, 1)
+    const t = progressRef.current
 
-      setCurrentPoints(prevArr =>
-        prevArr.map((p, i) => {
-          const t = targetPoints[i]
-          return new THREE.Vector3(
-            p.x,
-            p.y + (t.y - p.y) * next,
-            0
-          )
-        })
-      )
+    setCurrentPoints(() =>
+      start.map((p, i) => {
+        const q = target[i]
+        return new THREE.Vector3(
+          p.x,               // x stays the sampled x
+          p.y + (q.y - p.y) * t,
+          0
+        )
+      })
+    )
 
-      return next
-    })
+    if (t >= 1) {
+      // done
+      startPointsRef.current = null
+      targetPointsRef.current = null
+      progressRef.current = 0
+    }
   })
 
-  // use visible points
   const visiblePoints = useMemo(
     () => currentPoints.slice(0, Math.floor(visibleCount)),
     [currentPoints, visibleCount]
