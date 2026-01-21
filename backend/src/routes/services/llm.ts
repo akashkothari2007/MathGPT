@@ -1,6 +1,7 @@
 import { TimelineSchema } from "./schema";
 import { buildPrompt } from "./prompt";
 import dotenv from "dotenv";
+import {jsonrepair} from 'jsonrepair';
 dotenv.config();
 
 const API_KEY = process.env.DEEPSEEK_API_KEY;
@@ -32,7 +33,7 @@ export async function generateTimeline(question: string) {
         content: prompt,
       },
     ],
-    max_tokens: 4000,
+    max_tokens: 3000,
     temperature: 0.2,
   };
   console.log('[Backend] [LLM] Request body:', JSON.stringify({ ...requestBody, messages: [{ ...requestBody.messages[0], content: `[${requestBody.messages[0].content.length} chars]` }] }, null, 2));
@@ -74,19 +75,78 @@ export async function generateTimeline(question: string) {
     textResponse = textResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
   }
   textResponse = textResponse.trim();
-  console.log(textResponse)
   textResponse = textResponse.replace(/Math\.PI/g, '3.14159265359')
+  
+  // Try jsonrepair first
+  let repaired = false;
+  try {
+    const repairedText = jsonrepair(textResponse);
+    if (repairedText !== textResponse) {
+      console.log('[Backend] [LLM] jsonrepair successfully fixed JSON');
+      textResponse = repairedText;
+      repaired = true;
+    }
+  } catch (e: any) {
+    console.error('[Backend] [LLM] jsonrepair failed:', e?.message || e);
+  }
+  
   let timelineData: unknown;
+  
+  // Try parsing the JSON
   try {
     timelineData = JSON.parse(textResponse);
-    console.log('[Backend] Successfully parsed JSON. Type:', Array.isArray(timelineData) ? 'array' : typeof timelineData);
+    console.log('[Backend] [LLM] Successfully parsed JSON. Type:', Array.isArray(timelineData) ? 'array' : typeof timelineData);
     if (Array.isArray(timelineData)) {
-      console.log('[Backend] Timeline has', timelineData.length, 'actions');
+      console.log('[Backend] [LLM] Timeline has', timelineData.length, 'steps');
     }
-  } catch (err) {
-    console.error('[Backend] Failed to parse JSON. Error:', err);
-    console.error('[Backend] Text response that failed to parse (first 500 chars):', textResponse.substring(0, 500));
-    throw new Error("Failed to parse JSON:\n" + textResponse.substring(0, 500));
+  } catch (err: any) {
+    console.error('[Backend] [LLM] JSON parse failed. Error:', err?.message || err);
+    console.error('[Backend] [LLM] Error position:', err?.toString().match(/position (\d+)/)?.[1] || 'unknown');
+    
+    // Try to extract partial valid JSON (find last complete step)
+    console.log('[Backend] [LLM] Attempting partial JSON recovery...');
+    const errorMatch = err?.toString().match(/position (\d+)/);
+    const errorPos = errorMatch ? parseInt(errorMatch[1]) : 0;
+    
+    if (errorPos > 50) { // Only try if we have enough content
+      // Simple approach: try to find the last complete Step by looking for }] patterns
+      // Find the last occurrence of }] before the error
+      const beforeError = textResponse.substring(0, errorPos);
+      const lastStepEnd = beforeError.lastIndexOf('}]');
+      
+      if (lastStepEnd > 10) {
+        // Try to extract array up to last complete step
+        const partial = beforeError.substring(0, lastStepEnd + 1);
+        let fixed = partial.trim();
+        
+        // Remove trailing comma if exists
+        if (fixed.endsWith(',')) {
+          fixed = fixed.slice(0, -1);
+        }
+        
+        // Ensure it's a valid array
+        if (fixed.startsWith('[')) {
+          if (!fixed.endsWith(']')) {
+            fixed += ']';
+          }
+          
+          try {
+            const recovered = JSON.parse(fixed);
+            if (Array.isArray(recovered) && recovered.length > 0) {
+              console.log('[Backend] [LLM] Partial recovery successful! Extracted', recovered.length, 'complete steps');
+              timelineData = recovered;
+            }
+          } catch (recoveryErr) {
+            console.error('[Backend] [LLM] Partial recovery attempt failed:', (recoveryErr as Error)?.message);
+          }
+        }
+      }
+    }
+    
+    if (!timelineData) {
+      console.error('[Backend] [LLM] Text response that failed (first 800 chars):', textResponse.substring(0, 800));
+      throw new Error(`Failed to parse JSON: ${err?.message || 'Unknown error'}`);
+    }
   }
 
   console.log('[Backend] [LLM] Validating with Zod schema...');
