@@ -55,6 +55,16 @@ export default function FunctionPlot({
   const [targetPoints, setTargetPoints] = useState<THREE.Vector3[] | null>(null)
   const [progress, setProgress] = useState(0)
 
+  // Update currentPoints when f changes (if no active morph)
+  useEffect(() => {
+    if (!g && !targetPoints) {
+      // If no morphing animation, update immediately when f changes
+      setCurrentPoints(basePoints.map(p => p.clone()))
+      setTargetPoints(null)
+      setProgress(0)
+    }
+  }, [basePoints, g, targetPoints])
+
 
   const [visibleCount, setVisibleCount] = useState(2)
   const [drawFinished, setDrawFinished] = useState(false)

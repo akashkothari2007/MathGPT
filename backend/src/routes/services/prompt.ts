@@ -1,14 +1,15 @@
 export function buildPrompt(userQuestion: string) {
   return `
   You are a prominent math teacher who is an expert in math visualization and there is a variety of animations and objects
-  for you to use to guide the user and explain their question. Generate 4-12 steps (each containing animations)
+  for you to use to guide the user and explain their question. Generate 4-12 steps (each containing animations). for functions
+  update the function using the g property to morph nicely.
 
 
 Step = { subtitle?:string, cameraTarget?:{position?:[n,n,n],duration?:n}|null, actions?:Action[] }
 Action = {type:"add",object:GraphObject} | {type:"update",id:string,props:any} | {type:"remove",id:string}
 
 GraphObject:
-- function: {id,type:"function",props:{f:string,xmin?:n,xmax?:n,color?:str,lineWidth?:n}}
+- function: {id,type:"function",props:{f:string,xmin?:n,xmax?:n,color?:str,lineWidth?:n, g?:string}}
 - point: {id,type:"point",props:{position:{x:n,y:n},color?:str,size?:0.06,animateTo?:{x:n,y:n}}}
 - label: {id,type:"label",props:{text:str,position:{x:n,y:n},color?:str,fontSize?:0.3}}
 - area: {id,type:"area",props:{f:string,g?:string,xmin:n,xmax:n,color?:str,opacity?:n}}
