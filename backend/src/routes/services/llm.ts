@@ -18,9 +18,6 @@ type DeepSeekResponse = {
 };
 
 
-
-
-
 export async function generateOutline(question: string): Promise<string[]> {
   const prompt = buildOutlinePrompt(question);
 
@@ -40,16 +37,6 @@ export async function generateOutline(question: string): Promise<string[]> {
 
   return parsed;
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -168,6 +155,9 @@ export async function generateTimelineViaSteps(question: string) {
 export async function generateTimeline(question: string) {
   return generateTimelineViaSteps(question);
 }
+
+
+
 
 
 // export async function generateTimeline(question: string) {
