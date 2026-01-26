@@ -31,6 +31,7 @@ so like on first request objects = null
 then objects = p1, (1, 2, 3), f1, (x^2)
 then we updated f1 so for step 3 we send it
 p1, (1,2,3), f1, (x^3) or some shit yk so it knows all objects not just from last step
+so yeah see how we can store and send an updated objects summary list after every step 
 
 another issue i started at step 0 so in debugging i added one to it things might be fucked up or mismatched by 1 idk might be right too its hella confusing lol
 
