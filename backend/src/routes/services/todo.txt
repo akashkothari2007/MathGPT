@@ -10,3 +10,28 @@ prompt engineering lol
 dont be like akash and accidently send api key in github
 
 better parsing look for a library or something
+
+what i did rn for sse:
+so basically we hit backend /start it makes outline and first step and sends it to frontend
+also creates a session in memory, which has id, prompt, outline, what step we on, previous step for context for the llm whatever
+and session also has 'subscribers' rn its empty
+
+so after it does the first step then frontend hits the backend /stream with session id, and then it adds my frontend as a subscriber
+and then it starts the sessionRunner which gets session info using the id i passed through, it sees the outline, what step its on, prev step and sends it
+to generate the next step and then it broadcasts it, a fancy way of saying it fucking just writes it through the stream to the subscriber (frontend)
+
+then theres lots of error handling, when its done delete session delete subscriber
+just understand all ts make sure it makes sense cuz its rough rn
+
+here r some issues might be more:
+
+like okay say step1 it creates a point p1 and a line f1, step2 it updates the line f1, step3 it was only given prev step so maybe it tries to create a point
+again and uses p1 since it only thinks f1 exists, then it fucks up. probably gotta send it like a whole list of objects and update parameters
+so like on first request objects = null
+then objects = p1, (1, 2, 3), f1, (x^2)
+then we updated f1 so for step 3 we send it
+p1, (1,2,3), f1, (x^3) or some shit yk so it knows all objects not just from last step
+
+another issue i started at step 0 so in debugging i added one to it things might be fucked up or mismatched by 1 idk might be right too its hella confusing lol
+
+and maybe proper cleanup make sure sessions get deleted after just no huge errors blablabla
